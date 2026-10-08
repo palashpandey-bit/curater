@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6b21a8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Curater Health">
+  <title>Curater - Smart Health, SOS & AI Watch Companion</title>
+
+  <!-- PWA Inline Manifest -->
+  <link rel="manifest" href='data:application/manifest+json,{"name":"Curater Smart Health","short_name":"Curater","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#6b21a8","icons":[{"src":"https://cdn-icons-png.flaticon.com/512/3004/3004458.png","sizes":"512x512","type":"image/png"}]}'>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#faf5ff',
+              100: '#f3e8ff',
+              200: '#e9d5ff',
+              300: '#d8b4fe',
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7e22ce',
+              800: '#6b21a8',
+              900: '#581c87',
+              light: '#ffffff',
+              card: '#f8fafc'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: linear-gradient(135deg, #1e1b4b 0%, #31104b 50%, #0f172a 100%);
+      color: #0f172a;
+    }
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #a855f7;
+      border-radius: 4px;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.7); }
+      70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); }
+    }
+    .sos-pulse-ring {
+      animation: pulse-ring 1.8s infinite ease-in-out;
+    }
+    @keyframes pulse-purple {
+      0% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.5); }
+      70% { box-shadow: 0 0 0 14px rgba(168, 85, 247, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(168, 85, 247, 0); }
+    }
+    .purple-pulse {
+      animation: pulse-purple 2s infinite ease-in-out;
+    }
+    @keyframes watch-glow {
+      0%, 100% { border-color: rgba(168, 85, 247, 0.6); }
+      50% { border-color: rgba(236, 72, 153, 0.8); }
+    }
+    .watch-frame {
+      animation: watch-glow 4s infinite alternate;
+    }
+  </style>
+</head>
+<body class="min-h-screen p-2 sm:p-6 flex flex-col items-center justify-center relative overflow-x-hidden">
+
+  <!-- TOP DEVICE SELECTOR BAR & PWA INSTALL BTN -->
+  <div class="mb-4 bg-slate-900/90 backdrop-blur-md p-2 rounded-2xl border border-purple-500/30 flex flex-wrap justify-center gap-2 shadow-2xl z-50">
+    <button id="btn-device-phone" onclick="switchDeviceMode('phone')" class="px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 transition bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg">
+      <i class="fa-solid fa-mobile-screen"></i> 📱 Mobile App
+    </button>
+    <button id="btn-device-watch" onclick="switchDeviceMode('watch')" class="px-4 py-2 rounded-xl text-xs font-bold text-purple-200 hover:bg-purple-900/50 flex items-center gap-2 transition">
+      <i class="fa-solid fa-apple-watch text-purple-400"></i> ⌚ Watch OS
+    </button>
+    <button onclick="openInstallModal()" class="px-4 py-2 rounded-xl text-xs font-black bg-emerald-600 hover:bg-emerald-500 text-white flex items-center gap-2 transition shadow-lg">
+      <i class="fa-solid fa-download"></i> 📥 Install App / Download
+    </button>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- 1. MOBILE PHONE CONTAINER (WHITE & PURPLE) -->
+  <!-- ========================================== -->
+  <div id="phone-wrapper" class="w-full max-w-md bg-white min-h-[820px] sm:h-[850px] sm:rounded-[44px] shadow-2xl shadow-purple-950/80 border-0 sm:border-[10px] border-slate-900 flex flex-col justify-between overflow-hidden relative transition-all">
+
+    <!-- TOP STATUS BAR -->
+    <div class="bg-white text-slate-800 text-xs px-7 pt-3 pb-2 flex justify-between items-center font-bold z-30 select-none tracking-wide border-b border-purple-100">
+      <span class="font-extrabold text-purple-900" id="live-clock">9:41 AM</span>
+      <div class="flex items-center gap-2 text-purple-700">
+        <i class="fa-solid fa-shield-heart text-xs text-purple-600"></i>
+        <i class="fa-solid fa-signal text-[10px]"></i>
+        <i class="fa-solid fa-wifi text-[10px]"></i>
+        <i class="fa-solid fa-battery-full text-xs text-purple-900"></i>
+      </div>
+    </div>
+
+    <!-- MAIN SCREEN CONTAINER -->
+    <div id="app-container" class="flex-1 overflow-y-auto custom-scroll relative bg-slate-50">
+
+      <!-- SCREEN 1: WELCOME LANDING -->
+      <div id="screen-welcome" class="screen flex flex-col justify-between h-full p-6 text-center bg-gradient-to-b from-white via-purple-50 to-purple-100 text-slate-900 relative">
+        <div class="absolute top-12 left-1/2 -translate-x-1/2 w-60 h-60 bg-purple-300/30 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="my-auto flex flex-col items-center relative z-10">
+          <div class="relative mb-5">
+            <div class="w-24 h-24 bg-gradient-to-tr from-purple-800 via-purple-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-xl shadow-purple-500/30 transform rotate-2 border-2 border-white purple-pulse">
+              <i class="fa-solid fa-heart-pulse text-4xl text-white transform -rotate-2"></i>
+            </div>
+            <span class="absolute -bottom-2 -right-2 bg-rose-600 text-white text-[9px] font-extrabold px-2.5 py-0.5 rounded-full border-2 border-white tracking-wider uppercase shadow-md">SOS 24/7</span>
+          </div>
+
+          <h1 class="text-3xl font-black tracking-tight text-purple-950 mb-1">CURATER</h1>
+          <p class="text-purple-700 text-xs font-extrabold tracking-widest uppercase mb-2">Smart Health & AI Emergency Shield</p>
+          <p class="text-slate-600 text-xs max-w-xs leading-relaxed px-2 font-medium">
+            Wrist Fall Detection • Live Doctor Chat • AI Symptom Precautions • Pill Refill Tracker
+          </p>
+
+          <!-- PWA Quick Download Card -->
+          <div onclick="openInstallModal()" class="mt-4 bg-emerald-50 border border-emerald-300 p-3 rounded-2xl flex items-center gap-3 cursor-pointer hover:bg-emerald-100 transition w-full max-w-xs shadow-sm">
+            <div class="w-9 h-9 bg-emerald-600 text-white rounded-xl flex items-center justify-center font-bold shadow">
+              <i class="fa-solid fa-mobile-screen-button text-lg"></i>
+            </div>
+            <div class="text-left">
+              <p class="text-xs font-black text-emerald-950">Install Application</p>
+              <p class="text-[10px] text-emerald-700 font-semibold">Tap to save Curater on your phone</p>
+            </div>
+          </div>
+          
+          <div class="mt-4 grid grid-cols-2 gap-2 w-full max-w-xs text-left">
+            <div class="bg-white p-2.5 rounded-2xl border border-purple-200 shadow-sm flex items-center gap-2">
+              <i class="fa-solid fa-comments text-purple-600 text-base"></i>
+              <div>
+                <p class="text-[11px] font-bold text-purple-950">Live Doctor Chat</p>
+                <p class="text-[9px] text-slate-500">24/7 Cardiologists</p>
+              </div>
+            </div>
+            <div class="bg-white p-2.5 rounded-2xl border border-purple-200 shadow-sm flex items-center gap-2">
+              <i class="fa-solid fa-person-falling text-rose-500 text-base"></i>
+              <div>
+                <p class="text-[11px] font-bold text-purple-950">Gyro Sensor</p>
+                <p class="text-[9px] text-slate-500">Auto Fall Alerts</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2.5 pb-4 relative z-10">
+          <button onclick="switchScreen('screen-login')" class="w-full bg-gradient-to-r from-purple-700 via-purple-800 to-indigo-800 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-purple-700/20 transition active:scale-[0.98] text-xs tracking-wider uppercase">
+            Sign In to Palash's Dashboard
+          </button>
+          <button onclick="switchScreen('screen-signup')" class="w-full bg-white hover:bg-purple-50 text-purple-900 font-bold py-3 rounded-2xl border border-purple-200 transition active:scale-[0.98] text-xs">
+            Create Care Profile
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: LOGIN -->
+      <div id="screen-login" class="screen hidden flex-col justify-between h-full p-6 bg-white text-slate-900">
+        <div>
+          <button onclick="switchScreen('screen-welcome')" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-800 mb-6 hover:bg-purple-100 transition">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          
+          <div class="flex items-center gap-2.5 mb-2">
+            <div class="w-8 h-8 rounded-xl bg-purple-700 flex items-center justify-center text-white text-xs font-bold">C</div>
+            <span class="text-xs font-bold uppercase tracking-wider text-purple-700">Curater Health Platform</span>
+          </div>
+
+          <h2 class="text-2xl font-black text-purple-950 mb-1">Welcome Back 👋</h2>
+          <p class="text-slate-500 text-xs mb-8">Access live vitals, AI health advisor & wrist alerts</p>
+
+          <form onsubmit="event.preventDefault(); switchScreen('screen-dashboard');" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-purple-900 mb-1.5 uppercase tracking-wider">User ID / Email</label>
+              <div class="relative">
+                <i class="fa-solid fa-user absolute left-4 top-3.5 text-slate-400 text-sm"></i>
+                <input type="text" value="palash.pandey@curater.health" required class="w-full pl-11 pr-4 py-3 bg-purple-50/50 border border-purple-200 rounded-xl text-xs font-bold text-purple-950 focus:outline-none focus:border-purple-600">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-purple-900 mb-1.5 uppercase tracking-wider">Password</label>
+              <div class="relative">
+                <i class="fa-solid fa-lock absolute left-4 top-3.5 text-slate-400 text-sm"></i>
+                <input type="password" value="••••••••" required class="w-full pl-11 pr-4 py-3 bg-purple-50/50 border border-purple-200 rounded-xl text-xs font-bold text-purple-950 focus:outline-none focus:border-purple-600">
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-gradient-to-r from-purple-700 to-indigo-800 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-purple-700/20 transition active:scale-[0.98] mt-4 text-xs tracking-wide uppercase">
+              Enter Dashboard
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: SIGN UP -->
+      <div id="screen-signup" class="screen hidden flex-col justify-between h-full p-6 bg-white text-slate-900">
+        <div>
+          <button onclick="switchScreen('screen-welcome')" class="w-10 h-10 rounded-2xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-800 mb-6 hover:bg-purple-100 transition">
+            <i class="fa-solid fa-arrow-left"></i>
+          </button>
+          
+          <h2 class="text-2xl font-black text-purple-950 mb-1">Create Profile 🩺</h2>
+          <p class="text-slate-500 text-xs mb-6">Setup user profile for emergency telemetry</p>
+
+          <form onsubmit="event.preventDefault(); switchScreen('screen-dashboard');" class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-purple-900 mb-1.5 uppercase tracking-wider">Account Type</label>
+              <select class="w-full px-4 py-3 bg-purple-50/50 border border-purple-200 rounded-xl text-xs font-bold text-purple-950 focus:outline-none focus:border-purple-600">
+                <option value="senior">👴 Patient / Senior User</option>
+                <option value="caregiver">🧑‍⚕️ Caregiver / Family Guardian</option>
+                <option value="doctor">🩺 Doctor / Cardiologist</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-purple-900 mb-1.5 uppercase tracking-wider">Full Name</label>
+              <input type="text" value="Palash Pandey" required class="w-full px-4 py-3 bg-purple-50/50 border border-purple-200 rounded-xl text-xs font-bold text-purple-950 focus:outline-none focus:border-purple-600">
+            </div>
+
+            <button type="submit" class="w-full bg-purple-700 text-white font-extrabold py-3.5 rounded-2xl shadow-lg shadow-purple-700/20 transition active:scale-[0.98] text-xs uppercase tracking-wide">
+              Complete Setup
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: MAIN DASHBOARD (HOME TAB) -->
+      <div id="screen-dashboard" class="screen hidden flex-col min-h-full pb-24 bg-slate-50 text-slate-900">
+        
+        <!-- Header -->
+        <div class="bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900 text-white px-5 pt-4 pb-6 rounded-b-[32px] shadow-xl relative">
+          <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 bg-white text-purple-900 rounded-2xl flex items-center justify-center font-black text-sm shadow-md border-2 border-purple-200">
+                PP
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="font-extrabold text-sm text-white">Palash Pandey</h3>
+                  <span class="bg-emerald-500/20 text-emerald-300 text-[8px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-400/30 uppercase">Protected</span>
+                </div>
+                <p class="text-[10px] text-purple-200 flex items-center gap-1 mt-0.5">
+                  <i class="fa-solid fa-circle text-[6px] text-emerald-400 animate-ping"></i> Curater WatchOS Synced
+                </p>
+              </div>
+            </div>
+            
+            <button onclick="openInstallModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-xl text-[10px] font-black flex items-center gap-1 shadow">
+              <i class="fa-solid fa-download"></i> Install
+            </button>
+          </div>
+
+          <!-- Sensor Active Simulation Bar -->
+          <div class="bg-white/10 backdrop-blur-md p-3 rounded-2xl text-white flex items-center justify-between border border-purple-300/30 mt-2">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 bg-rose-500/80 rounded-xl flex items-center justify-center text-white shadow">
+                <i class="fa-solid fa-person-falling text-base"></i>
+              </div>
+              <div>
+                <p class="text-[9px] uppercase font-black tracking-wider text-purple-200">6-Axis Gyro Fall Sensor</p>
+                <p class="text-[11px] font-bold text-white">Monitoring Active</p>
+              </div>
+            </div>
+            <button onclick="triggerFallSimulation()" class="bg-rose-600 hover:bg-rose-700 text-white text-[11px] font-extrabold px-3 py-1.5 rounded-xl shadow border border-rose-300 active:scale-95 transition">
+              <i class="fa-solid fa-triangle-exclamation"></i> Test Fall
+            </button>
+          </div>
+        </div>
+
+        <!-- Dashboard Content Body -->
+        <div class="p-4 space-y-4">
+
+          <!-- Doctor Chat Callout Banner -->
+          <div onclick="switchTab('tab-doctors'); openDoctorChat('Dr. Ananya Sharma', 'Cardiologist');" class="bg-gradient-to-r from-purple-800 to-indigo-900 text-white p-3.5 rounded-2xl shadow-md border border-purple-500 flex items-center justify-between cursor-pointer hover:opacity-95 active:scale-98 transition">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center text-white text-lg font-bold shadow">
+                <i class="fa-solid fa-user-doctor"></i>
+              </div>
+              <div>
+                <span class="bg-emerald-400 text-purple-950 text-[8px] font-extrabold px-2 py-0.5 rounded uppercase">24/7 LIVE TELECONSULT</span>
+                <h4 class="font-extrabold text-xs text-white mt-0.5">Doctor Live Chat Available</h4>
+                <p class="text-[10px] text-purple-200">Connect with Dr. Ananya Sharma • Vitals Synced</p>
+              </div>
+            </div>
+            <span class="bg-white text-purple-900 text-[10px] font-black px-2.5 py-1 rounded-xl shadow flex items-center gap-1">
+              <i class="fa-solid fa-comments"></i> Chat
+            </span>
+          </div>
+
+          <!-- Live Vitals Grid -->
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <h4 class="text-[11px] font-black uppercase text-purple-900 tracking-wider">Live Wrist Telemetry</h4>
+              <button onclick="refreshVitals()" class="text-[9px] text-purple-700 font-bold bg-purple-100 hover:bg-purple-200 px-2.5 py-1 rounded-full border border-purple-200 flex items-center gap-1 transition">
+                <i class="fa-solid fa-rotate-right" id="vitals-spinner"></i> Measure Now
+              </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2">
+              <div class="bg-white p-2.5 rounded-2xl border border-purple-100 shadow-sm text-center">
+                <i class="fa-solid fa-heart-pulse text-rose-500 mb-1 text-base"></i>
+                <p class="text-[8px] font-bold text-slate-500 uppercase">Heart Rate</p>
+                <p class="font-extrabold text-xs text-purple-950" id="val-hr">76 <span class="text-[8px] font-normal text-slate-500">BPM</span></p>
+              </div>
+              <div class="bg-white p-2.5 rounded-2xl border border-purple-100 shadow-sm text-center">
+                <i class="fa-solid fa-droplet text-purple-600 mb-1 text-base"></i>
+                <p class="text-[8px] font-bold text-slate-500 uppercase">Blood Sugar</p>
+                <p class="font-extrabold text-xs text-purple-950" id="val-sugar">105 <span class="text-[8px] font-normal text-slate-500">mg/dL</span></p>
+              </div>
+              <div class="bg-white p-2.5 rounded-2xl border border-purple-100 shadow-sm text-center">
+                <i class="fa-solid fa-gauge-high text-indigo-600 mb-1 text-base"></i>
+                <p class="text-[8px] font-bold text-slate-500 uppercase">Blood Press.</p>
+                <p class="font-extrabold text-xs text-purple-950" id="val-bp">120/80</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Emergency Action Row -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <button onclick="triggerSOS()" class="bg-gradient-to-r from-rose-600 to-red-600 text-white p-3 rounded-2xl shadow border border-rose-400 text-left flex items-center justify-between active:scale-95 transition">
+              <div>
+                <p class="text-[9px] font-black uppercase text-rose-200">Emergency</p>
+                <p class="text-xs font-extrabold text-white">Wrist SOS Blast</p>
+              </div>
+              <i class="fa-solid fa-bell text-lg text-white"></i>
+            </button>
+
+            <button onclick="switchTab('tab-ai-doctor')" class="bg-gradient-to-r from-purple-700 to-indigo-800 text-white p-3 rounded-2xl shadow border border-purple-500 text-left flex items-center justify-between active:scale-95 transition">
+              <div>
+                <p class="text-[9px] font-black uppercase text-purple-200">AI Diagnosis</p>
+                <p class="text-xs font-extrabold text-white">Ask Health AI</p>
+              </div>
+              <i class="fa-solid fa-wand-magic-sparkles text-lg text-purple-200"></i>
+            </button>
+          </div>
+
+          <!-- Medication Schedule -->
+          <div class="bg-white p-4 rounded-3xl border border-purple-100 shadow-sm">
+            <div class="flex justify-between items-center mb-2.5">
+              <div>
+                <h4 class="font-black text-purple-950 text-xs">Today's Medication Schedule</h4>
+                <p class="text-[9px] text-slate-500">Palash's Wrist Reminders</p>
+              </div>
+              <span id="med-taken-badge" class="text-[9px] text-purple-800 font-extrabold bg-purple-100 px-2 py-0.5 rounded-full border border-purple-200">1 / 2 Taken</span>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex items-center justify-between p-2.5 bg-purple-50/50 rounded-2xl border border-purple-100">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-xl bg-purple-200 text-purple-800 flex items-center justify-center text-xs font-bold">
+                    <i class="fa-solid fa-check"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs font-bold text-purple-950">Metformin 500mg</p>
+                    <p class="text-[9px] text-slate-500">08:00 AM • Morning Dose Taken</p>
+                  </div>
+                </div>
+                <span class="text-[9px] text-purple-800 font-bold bg-white px-2 py-0.5 rounded border border-purple-200">Taken</span>
+              </div>
+
+              <div id="med-item-aspirin" class="flex items-center justify-between p-2.5 bg-white rounded-2xl border-2 border-purple-300 shadow-sm">
+                <div class="flex items-center gap-2.5">
+                  <div class="w-7 h-7 rounded-xl bg-purple-700 text-white flex items-center justify-center text-xs font-bold shadow">
+                    <i class="fa-solid fa-pills"></i>
+                  </div>
+                  <div>
+                    <p class="text-xs font-bold text-purple-950">Aspirin 75mg</p>
+                    <p class="text-[9px] text-purple-700 font-semibold">02:00 PM • Due Now</p>
+                  </div>
+                </div>
+                <button onclick="confirmMedication('med-item-aspirin')" class="bg-purple-700 hover:bg-purple-800 text-white text-[10px] font-extrabold px-3 py-1 rounded-xl shadow active:scale-95 transition">
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stock Refill Alert Widget -->
+          <div class="bg-gradient-to-r from-purple-100 via-purple-50 to-purple-100 p-3.5 rounded-2xl border border-purple-200 flex justify-between items-center shadow-sm">
+            <div>
+              <span class="text-[8px] uppercase font-black text-amber-800 bg-amber-100 px-1.5 py-0.5 rounded border border-amber-300">Low Stock Warning</span>
+              <h5 class="text-xs font-bold text-purple-950 mt-1">Aspirin 75mg (2 Pills Left)</h5>
+              <p class="text-[9px] text-slate-600">Auto Refill Order Queued</p>
+            </div>
+            <button onclick="triggerRefillOrder()" class="bg-purple-800 hover:bg-purple-900 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow active:scale-95 whitespace-nowrap">
+              Refill Now
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TAB 2: AI HEALTH ADVISOR & SYMPTOM PRECAUTIONS -->
+      <div id="tab-ai-doctor" class="screen hidden flex-col min-h-full pb-24 bg-slate-50 text-slate-900 p-4">
+        <div class="mb-3">
+          <div class="flex items-center gap-2">
+            <span class="bg-purple-200 text-purple-900 text-[9px] font-extrabold px-2 py-0.5 rounded uppercase">AI Health Copilot</span>
+            <span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-circle text-[7px] animate-pulse"></i> Gemini Core Online</span>
+          </div>
+          <h3 class="text-xl font-black text-purple-950 mt-0.5">AI Symptom & Health Advisor</h3>
+          <p class="text-xs text-slate-500">Apni koi bhi problem likho — AI precautions & solution bta dega</p>
+        </div>
+
+        <!-- Dynamic AI Query Form -->
+        <div class="bg-white p-3.5 rounded-2xl border border-purple-200 shadow-sm mb-3 space-y-2.5">
+          <label class="block text-[10px] font-extrabold uppercase text-purple-900 tracking-wider">Describe Palash's Symptom or Problem:</label>
+          <div class="relative">
+            <textarea id="ai-input" rows="2" placeholder="e.g. Sir me tez dard hai aur chakkar aa rahe hain... or Chest feeling tight..." class="w-full p-3 bg-purple-50/50 border border-purple-200 rounded-xl text-xs font-bold text-purple-950 focus:outline-none focus:border-purple-600"></textarea>
+          </div>
+
+          <!-- Quick Query Preset Chips -->
+          <div class="flex gap-1.5 overflow-x-auto pb-1 custom-scroll text-nowrap">
+            <button onclick="setAiQuery('Sir dard aur bukhaar ho raha hai')" class="bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-purple-200">
+              🤒 Headache & Fever
+            </button>
+            <button onclick="setAiQuery('Chest tightness & breathlessness')" class="bg-rose-100 hover:bg-rose-200 text-rose-900 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-rose-200">
+              🚨 Chest Tightness
+            </button>
+            <button onclick="setAiQuery('Blood Sugar reading 240 mg/dL high')" class="bg-amber-100 hover:bg-amber-200 text-amber-900 text-[10px] font-bold px-2.5 py-1 rounded-lg border border-amber-200">
+              🩸 High Blood Sugar
+            </button>
+          </div>
+
+          <button onclick="analyzeSymptomWithAI()" class="w-full bg-gradient-to-r from-purple-700 to-indigo-800 text-white font-extrabold py-3 rounded-xl shadow transition active:scale-98 text-xs flex items-center justify-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Get AI Precautions & Solution
+          </button>
+        </div>
+
+        <!-- AI Output Box -->
+        <div id="ai-result-card" class="bg-white p-4 rounded-2xl border border-purple-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-shield-heart text-purple-700 text-lg"></i>
+              <h4 class="font-extrabold text-xs text-purple-950">AI Medical Guidance</h4>
+            </div>
+            <span id="ai-urgency-badge" class="bg-emerald-100 text-emerald-800 text-[9px] font-black px-2 py-0.5 rounded-full border border-emerald-300">
+              Mild / Regular
+            </span>
+          </div>
+
+          <div id="ai-output-text" class="text-xs text-slate-700 leading-relaxed font-medium space-y-2">
+            <p>👋 Type a symptom or choose a quick prompt above to receive medical precautions, immediate care steps, and urgency warnings tailored for Palash.</p>
+          </div>
+
+          <div id="ai-action-buttons" class="hidden pt-2 border-t border-slate-100 flex gap-2">
+            <button onclick="switchTab('tab-doctors')" class="flex-1 bg-purple-100 hover:bg-purple-200 text-purple-900 text-[10px] font-extrabold py-2 rounded-xl text-center">
+              🩺 Book Doctor Consult
+            </button>
+            <button onclick="triggerSOS()" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-extrabold px-3 py-2 rounded-xl text-center">
+              🚨 Emergency Call
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: DOCTOR CONSULTATION & REAL TIME CHAT -->
+      <div id="tab-doctors" class="screen hidden flex-col min-h-full pb-24 bg-slate-50 text-slate-900">
+        
+        <!-- DOCTOR LIST VIEW -->
+        <div id="doctor-list-view" class="p-4 space-y-3">
+          <div class="mb-3">
+            <div class="flex items-center gap-2">
+              <span class="bg-purple-200 text-purple-900 text-[9px] font-extrabold px-2 py-0.5 rounded uppercase">Tele-Consult Portal</span>
+              <span class="text-xs text-emerald-600 font-bold"><i class="fa-solid fa-circle text-[7px] animate-pulse"></i> 2 Doctors Active</span>
+            </div>
+            <h3 class="text-xl font-black text-purple-950 mt-0.5">Live Doctor Consultation</h3>
+            <p class="text-xs text-slate-500">Real-time chat, video calls & medical guidance</p>
+          </div>
+
+          <div class="space-y-3">
+            <!-- Doctor Card 1 -->
+            <div class="bg-white p-3.5 rounded-2xl border border-purple-100 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <div class="w-12 h-12 rounded-2xl bg-purple-100 text-purple-800 flex items-center justify-center font-black text-xl border border-purple-200">
+                      👩‍⚕️
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-xs text-purple-950">Dr. Ananya Sharma</h4>
+                    <p class="text-[10px] text-purple-700 font-bold">Chief Cardiologist • Apollo ER</p>
+                    <p class="text-[9px] text-slate-500">12 Yrs Exp • 4.9 ★ Rating</p>
+                  </div>
+                </div>
+                <span class="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-300">
+                  Online Now
+                </span>
+              </div>
+
+              <div class="bg-purple-50/60 p-2.5 rounded-xl border border-purple-100 flex items-center justify-between text-[10px]">
+                <span class="font-semibold text-purple-900"><i class="fa-solid fa-heart-pulse text-rose-500"></i> Auto-Sync Vitals Enabled</span>
+                <span class="text-slate-500">HR: 76 BPM | BP: 120/80</span>
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="openDoctorChat('Dr. Ananya Sharma', 'Chief Cardiologist')" class="flex-1 bg-purple-700 hover:bg-purple-800 text-white text-[11px] font-extrabold py-2.5 rounded-xl shadow active:scale-95 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-comments"></i> Start Real-Time Chat
+                </button>
+                <button onclick="startDoctorCall('Dr. Ananya Sharma')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold px-3 py-2.5 rounded-xl shadow active:scale-95 transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-video"></i> Call
+                </button>
+              </div>
+            </div>
+
+            <!-- Doctor Card 2 -->
+            <div class="bg-white p-3.5 rounded-2xl border border-purple-100 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                  <div class="relative">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-800 flex items-center justify-center font-black text-xl border border-indigo-200">
+                      👨‍⚕️
+                    </div>
+                    <span class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white"></span>
+                  </div>
+                  <div>
+                    <h4 class="font-extrabold text-xs text-purple-950">Dr. Rahul Verma</h4>
+                    <p class="text-[10px] text-indigo-700 font-bold">Emergency & Trauma Specialist</p>
+                    <p class="text-[9px] text-slate-500">10 Yrs Exp • Max Healthcare</p>
+                  </div>
+                </div>
+                <span class="bg-emerald-100 text-emerald-800 text-[9px] font-extrabold px-2 py-0.5 rounded-md border border-emerald-300">
+                  Online
+                </span>
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="openDoctorChat('Dr. Rahul Verma', 'Emergency Specialist')" class="flex-1 bg-purple-700 hover:bg-purple-800 text-white text-[11px] font-extrabold py-2.5 rounded-xl shadow active:scale-95 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-comments"></i> Start Real-Time Chat
+                </button>
+                <button onclick="startDoctorCall('Dr. Rahul Verma')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold px-3 py-2.5 rounded-xl shadow active:scale-95 transition flex items-center justify-center gap-1">
+                  <i class="fa-solid fa-video"></i> Call
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- REAL TIME DOCTOR CHAT ROOM VIEW -->
+        <div id="doctor-chat-room" class="hidden flex-col h-full bg-slate-50">
+          
+          <!-- Chat Header -->
+          <div class="bg-white px-4 py-3 border-b border-purple-100 flex items-center justify-between shadow-sm sticky top-0 z-20">
+            <div class="flex items-center gap-2.5">
+              <button onclick="closeDoctorChat()" class="w-8 h-8 rounded-xl bg-purple-50 text-purple-800 flex items-center justify-center font-bold text-xs hover:bg-purple-100">
+                <i class="fa-solid fa-arrow-left"></i>
+              </button>
+              <div class="relative">
+                <div class="w-9 h-9 rounded-xl bg-purple-700 text-white flex items-center justify-center font-black text-sm" id="chat-doc-avatar">
+                  👩‍⚕️
+                </div>
+                <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-white"></span>
+              </div>
+              <div>
+                <h4 class="font-extrabold text-xs text-purple-950" id="chat-doc-name">Dr. Ananya Sharma</h4>
+                <p class="text-[9px] text-emerald-600 font-extrabold flex items-center gap-1">
+                  <i class="fa-solid fa-circle text-[6px]"></i> Active • Live Vitals Synced
+                </p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1.5">
+              <button onclick="startDoctorCall('Dr. Ananya Sharma')" class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xs font-bold hover:bg-emerald-200">
+                <i class="fa-solid fa-video"></i>
+              </button>
+              <button onclick="alert('Downloading latest prescription summary...')" class="w-8 h-8 rounded-xl bg-purple-100 text-purple-800 flex items-center justify-center text-xs font-bold hover:bg-purple-200">
+                <i class="fa-solid fa-file-medical"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Chat Messages Scroll Stream -->
+          <div id="chat-messages-container" class="flex-1 p-4 overflow-y-auto custom-scroll space-y-3 bg-slate-100/60 min-h-[420px]">
+            
+            <!-- Vitals Context Alert Card inside Chat -->
+            <div class="bg-purple-900 text-white p-3 rounded-2xl text-center space-y-1 shadow">
+              <div class="flex justify-center items-center gap-1.5 text-[10px] font-black tracking-wider text-purple-200 uppercase">
+                <i class="fa-solid fa-shield-heart text-rose-400"></i> Encrypted Medical Session
+              </div>
+              <p class="text-[11px] font-bold text-white">Palash's Wrist Vitals Shared with Doctor:</p>
+              <div class="grid grid-cols-3 gap-1 pt-1 text-[10px] font-extrabold text-purple-100">
+                <span class="bg-white/10 py-1 rounded">Heart: 76 BPM</span>
+                <span class="bg-white/10 py-1 rounded">BP: 120/80</span>
+                <span class="bg-white/10 py-1 rounded">Glucose: 105</span>
+              </div>
+            </div>
+
+            <!-- Message 1 from Doctor -->
+            <div class="flex gap-2 items-start">
+              <div class="w-7 h-7 rounded-xl bg-purple-700 text-white flex items-center justify-center text-xs font-bold shadow shrink-0">
+                🩺
+              </div>
+              <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-purple-100 shadow-sm max-w-[82%] text-xs text-slate-800 font-medium">
+                <p class="font-extrabold text-purple-950 text-[10px] mb-0.5" id="chat-doc-role-title">Dr. Ananya Sharma (Cardiologist)</p>
+                Hello Palash! I am reviewing your real-time smartwatch telemetry. Your heart rate and BP look stable right now. How are you feeling?
+                <span class="block text-[8px] text-slate-400 text-right mt-1 font-bold">09:42 AM</span>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Doctor Typing Indicator -->
+          <div id="chat-typing-indicator" class="hidden px-5 py-1 text-[10px] text-purple-700 font-bold items-center gap-1.5">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Doctor is typing response...
+          </div>
+
+          <!-- Preset Quick Patient Action Chips -->
+          <div class="px-3 py-1.5 bg-white border-t border-purple-100 flex gap-1.5 overflow-x-auto text-nowrap custom-scroll">
+            <button onclick="sendQuickChatMessage('Dr. I am feeling slight chest tightness and dizziness.')" class="bg-purple-100 hover:bg-purple-200 text-purple-950 text-[10px] font-bold px-2.5 py-1 rounded-xl border border-purple-200">
+              🚨 Slight Chest Tightness
+            </button>
+            <button onclick="sendQuickChatMessage('Can I take Aspirin 75mg now?')" class="bg-purple-100 hover:bg-purple-200 text-purple-950 text-[10px] font-bold px-2.5 py-1 rounded-xl border border-purple-200">
+              💊 Aspirin Dose Query
+            </button>
+            <button onclick="sendQuickChatMessage('Please review my blood sugar reading of 105 mg/dL.')" class="bg-purple-100 hover:bg-purple-200 text-purple-950 text-[10px] font-bold px-2.5 py-1 rounded-xl border border-purple-200">
+              🩸 Review Glucose Log
+            </button>
+          </div>
+
+          <!-- Chat Input Bar -->
+          <div class="p-3 bg-white border-t border-purple-100 flex items-center gap-2">
+            <input type="text" id="chat-input-field" placeholder="Type message to doctor..." onkeypress="if(event.key==='Enter') sendUserChatMessage()" class="flex-1 bg-purple-50/60 border border-purple-200 rounded-xl px-3 py-2.5 text-xs font-bold text-purple-950 focus:outline-none focus:border-purple-600">
+            <button onclick="sendUserChatMessage()" class="bg-purple-700 hover:bg-purple-800 text-white w-10 h-10 rounded-xl flex items-center justify-center font-bold shadow transition active:scale-95 shrink-0">
+              <i class="fa-solid fa-paper-plane text-xs"></i>
+            </button>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- TAB 4: SOS & FALL GYRO CONFIG -->
+      <div id="tab-sos" class="screen hidden flex-col min-h-full pb-24 bg-slate-50 text-slate-900 p-4">
+        <div class="mb-3">
+          <h3 class="text-xl font-black text-purple-950">Emergency & Gyro Config</h3>
+          <p class="text-xs text-slate-500">Wrist fall sensor sensitivity & emergency dispatch</p>
+        </div>
+
+        <div class="bg-rose-50 border border-rose-200 p-4 rounded-3xl text-center space-y-3 mb-4">
+          <div class="w-16 h-16 bg-rose-600 text-white rounded-full flex items-center justify-center mx-auto text-2xl shadow-lg sos-pulse-ring cursor-pointer" onclick="triggerSOS()">
+            <i class="fa-solid fa-bell"></i>
+          </div>
+          <div>
+            <h4 class="font-black text-rose-950 text-sm">Emergency SOS Panic Button</h4>
+            <p class="text-[10px] text-rose-700">Tap to instantly alert family & dispatch location</p>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-3xl border border-purple-100 shadow-sm space-y-3">
+          <h4 class="font-black text-purple-950 text-xs">Emergency Contacts for Palash</h4>
+          
+          <div class="flex items-center justify-between p-2.5 bg-purple-50 rounded-2xl">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-user-shield text-purple-700 text-base"></i>
+              <div>
+                <p class="text-xs font-bold text-purple-950">Caregiver (Aarti Pandey)</p>
+                <p class="text-[9px] text-slate-500">+91 98765 43210</p>
+              </div>
+            </div>
+            <span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Primary</span>
+          </div>
+
+          <div class="flex items-center justify-between p-2.5 bg-purple-50 rounded-2xl">
+            <div class="flex items-center gap-2.5">
+              <i class="fa-solid fa-truck-medical text-rose-600 text-base"></i>
+              <div>
+                <p class="text-xs font-bold text-purple-950">Nearest Ambulance</p>
+                <p class="text-[9px] text-slate-500">Apollo Emergency 108</p>
+              </div>
+            </div>
+            <span class="text-[9px] bg-rose-100 text-rose-800 font-bold px-2 py-0.5 rounded">Auto-Dial</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM NAVIGATION BAR -->
+    <div id="bottom-nav" class="bg-white border-t border-purple-100 px-3 py-2 flex justify-around items-center absolute bottom-0 left-0 right-0 z-30">
+      <button onclick="switchTab('screen-dashboard')" class="nav-btn flex flex-col items-center gap-0.5 text-purple-700 font-bold text-[10px]" id="nav-home">
+        <i class="fa-solid fa-house text-base"></i>
+        <span>Home</span>
+      </button>
+      <button onclick="switchTab('tab-ai-doctor')" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-purple-700 font-bold text-[10px]" id="nav-ai">
+        <i class="fa-solid fa-robot text-base"></i>
+        <span>AI Doctor</span>
+      </button>
+      <button onclick="switchTab('tab-doctors')" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-purple-700 font-bold text-[10px]" id="nav-doctors">
+        <i class="fa-solid fa-user-doctor text-base"></i>
+        <span>Doctor Chat</span>
+      </button>
+      <button onclick="switchTab('tab-sos')" class="nav-btn flex flex-col items-center gap-0.5 text-slate-400 hover:text-purple-700 font-bold text-[10px]" id="nav-sos">
+        <i class="fa-solid fa-shield-heart text-base"></i>
+        <span>SOS</span>
+      </button>
+    </div>
+
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 2. WATCH OS CONTAINER (WATCH SCREEN MODE) -->
+  <!-- ========================================== -->
+  <div id="watch-wrapper" class="hidden flex-col items-center justify-center my-auto transition-all">
+    <div class="w-[300px] h-[360px] bg-slate-950 rounded-[50px] p-4 border-[8px] border-purple-900 watch-frame shadow-2xl flex flex-col justify-between text-white relative overflow-hidden">
+      
+      <!-- Watch Screen Top Bar -->
+      <div class="flex justify-between items-center text-[10px] text-purple-300 font-extrabold pb-1 border-b border-purple-900/60">
+        <span>09:41</span>
+        <span class="text-rose-400 flex items-center gap-1"><i class="fa-solid fa-heart-pulse"></i> 76 BPM</span>
+      </div>
+
+      <!-- Watch Display Body -->
+      <div id="watch-screen-content" class="flex-1 flex flex-col justify-center items-center text-center p-2 space-y-2">
+        <div class="w-12 h-12 bg-purple-800 rounded-2xl flex items-center justify-center text-2xl shadow-lg border border-purple-400 purple-pulse">
+          <i class="fa-solid fa-shield-heart"></i>
+        </div>
+        <div>
+          <p class="text-xs font-black text-white">Curater WatchOS</p>
+          <p class="text-[9px] text-purple-300">Fall & Vitals Monitoring</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5 w-full pt-1">
+          <button onclick="triggerSOS()" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-black p-2 rounded-xl flex items-center justify-center gap-1">
+            <i class="fa-solid fa-bell"></i> SOS
+          </button>
+          <button onclick="triggerFallSimulation()" class="bg-purple-800 hover:bg-purple-700 text-white text-[10px] font-black p-2 rounded-xl flex items-center justify-center gap-1">
+            <i class="fa-solid fa-person-falling"></i> Fall Test
+          </button>
+        </div>
+      </div>
+
+      <!-- Watch Crown Indicator -->
+      <div class="text-center text-[8px] text-purple-400 font-extrabold">
+        <span>CURATER SMART WRIST SENSOR</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 3. MODALS (FALL ALERT, SOS ALERT, INSTALL) -->
+  <!-- ========================================== -->
+
+  <!-- FALL DETECTION ALERT MODAL -->
+  <div id="modal-fall" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="bg-white max-w-sm w-full rounded-3xl p-5 text-center shadow-2xl border-2 border-rose-500 animate-bounce-short">
+      <div class="w-16 h-16 bg-rose-600 text-white rounded-full flex items-center justify-center text-3xl mx-auto mb-3 sos-pulse-ring">
+        <i class="fa-solid fa-person-falling"></i>
+      </div>
+      <span class="bg-rose-100 text-rose-800 text-[10px] font-black px-2.5 py-0.5 rounded-full border border-rose-300 uppercase">
+        6-Axis Sensor Detected Impact
+      </span>
+      <h3 class="text-xl font-black text-slate-900 mt-2">FALL DETECTED!</h3>
+      <p class="text-xs text-slate-600 mt-1">Calling emergency contacts in <span id="fall-countdown" class="font-extrabold text-rose-600 text-base">10</span> seconds if uncancelled.</p>
+
+      <div class="mt-5 space-y-2">
+        <button onclick="cancelFallAlert()" class="w-full bg-slate-900 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider shadow">
+          I'm Okay! Cancel Alert
+        </button>
+        <button onclick="triggerSOS()" class="w-full bg-rose-600 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider shadow">
+          Call Emergency Now
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SOS EMERGENCY SENT MODAL -->
+  <div id="modal-sos-sent" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="bg-white max-w-sm w-full rounded-3xl p-5 text-center shadow-2xl border-2 border-rose-600">
+      <div class="w-16 h-16 bg-rose-600 text-white rounded-full flex items-center justify-center text-3xl mx-auto mb-3">
+        <i class="fa-solid fa-truck-medical"></i>
+      </div>
+      <h3 class="text-xl font-black text-rose-950">EMERGENCY DISPATCHED</h3>
+      <p class="text-xs text-slate-600 mt-1">GPS Location sent to Aarti Pandey & Apollo ICU Ambulance.</p>
+
+      <div class="bg-purple-50 p-3 rounded-2xl text-left my-4 border border-purple-200">
+        <p class="text-[10px] font-bold text-purple-900 uppercase">Live Ambulance & Telemetry Status:</p>
+        <p class="text-xs text-slate-700 font-medium">Vehicle: MP-09-EV-4092 (ICU Unit)</p>
+        <p class="text-xs text-slate-700 font-medium">Driver: Vikram Singh (+91 98260 11223)</p>
+        <p class="text-xs text-rose-700 font-bold mt-1">ETA: ~6 Minutes (Live GPS En Route)</p>
+      </div>
+
+      <button onclick="closeModal('modal-sos-sent')" class="w-full bg-slate-900 text-white font-extrabold py-3 rounded-2xl text-xs uppercase">
+        Dismiss SOS Alert
+      </button>
+    </div>
+  </div>
+
+  <!-- PWA INSTALL INSTRUCTIONS MODAL -->
+  <div id="modal-install" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center z-50 p-4">
+    <div class="bg-white max-w-sm w-full rounded-3xl p-5 text-left shadow-2xl border border-purple-200">
+      <div class="flex justify-between items-center mb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-purple-700 text-white flex items-center justify-center font-bold text-xs">C</div>
+          <h3 class="font-black text-purple-950 text-base">Install Curater App</h3>
+        </div>
+        <button onclick="closeModal('modal-install')" class="text-slate-400 hover:text-slate-700 font-bold text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <p class="text-xs text-slate-600 mb-3 font-medium">Install this app directly onto your home screen for fast wrist alerts & offline access:</p>
+
+      <div class="space-y-2.5 text-xs">
+        <div class="bg-purple-50 p-3 rounded-2xl border border-purple-100">
+          <p class="font-extrabold text-purple-950 flex items-center gap-2">
+            <i class="fa-brands fa-apple text-sm"></i> iPhone / Safari:
+          </p>
+          <p class="text-slate-600 mt-0.5 text-[11px]">Tap the <strong>Share</strong> button at the bottom of Safari, then choose <strong>"Add to Home Screen"</strong>.</p>
+        </div>
+
+        <div class="bg-purple-50 p-3 rounded-2xl border border-purple-100">
+          <p class="font-extrabold text-purple-950 flex items-center gap-2">
+            <i class="fa-brands fa-android text-sm text-emerald-600"></i> Android / Chrome:
+          </p>
+          <p class="text-slate-600 mt-0.5 text-[11px]">Tap the <strong>3 Dots Menu</strong> at top right, then select <strong>"Install app"</strong> or <strong>"Add to Home Screen"</strong>.</p>
+        </div>
+      </div>
+
+      <button onclick="closeModal('modal-install')" class="w-full bg-purple-800 text-white font-extrabold py-3 rounded-2xl text-xs uppercase tracking-wider mt-4">
+        Got It
+      </button>
+    </div>
+  </div>
+
+
+  <!-- ========================================== -->
+  <!-- 4. APPLICATION JAVASCRIPT LOGIC -->
+  <!-- ========================================== -->
+  <script>
+    // State Variables
+    let fallTimer = null;
+    let countdownValue = 10;
+    let audioCtx = null;
+    let activeDoctorName = "Dr. Ananya Sharma";
+
+    // Clock updates
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      let minutes = now.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+      const strTime = hours + ':' + minutes + ' ' + ampm;
+      const el = document.getElementById('live-clock');
+      if(el) el.innerText = strTime;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Switch Screen / Tabs
+    function switchScreen(screenId) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('flex'));
+      const target = document.getElementById(screenId);
+      if (target) {
+        target.classList.remove('hidden');
+        target.classList.add('flex');
+      }
+
+      // Hide bottom nav on welcome/login/signup
+      const nav = document.getElementById('bottom-nav');
+      if (screenId === 'screen-welcome' || screenId === 'screen-login' || screenId === 'screen-signup') {
+        nav.classList.add('hidden');
+      } else {
+        nav.classList.remove('hidden');
+      }
+    }
+
+    function switchTab(tabId) {
+      switchScreen(tabId);
+      // Update nav button colors
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('text-purple-700');
+        btn.classList.add('text-slate-400');
+      });
+      if (tabId === 'screen-dashboard') document.getElementById('nav-home').classList.add('text-purple-700');
+      if (tabId === 'tab-ai-doctor') document.getElementById('nav-ai').classList.add('text-purple-700');
+      if (tabId === 'tab-doctors') document.getElementById('nav-doctors').classList.add('text-purple-700');
+      if (tabId === 'tab-sos') document.getElementById('nav-sos').classList.add('text-purple-700');
+    }
+
+    // Switch Device View (Phone vs Watch OS)
+    function switchDeviceMode(mode) {
+      const phoneWrap = document.getElementById('phone-wrapper');
+      const watchWrap = document.getElementById('watch-wrapper');
+      const btnPhone = document.getElementById('btn-device-phone');
+      const btnWatch = document.getElementById('btn-device-watch');
+
+      if (mode === 'watch') {
+        phoneWrap.classList.add('hidden');
+        watchWrap.classList.remove('hidden');
+        watchWrap.classList.add('flex');
+        btnWatch.className = "px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 transition bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg";
+        btnPhone.className = "px-4 py-2 rounded-xl text-xs font-bold text-purple-200 hover:bg-purple-900/50 flex items-center gap-2 transition";
+      } else {
+        watchWrap.classList.add('hidden');
+        watchWrap.classList.remove('flex');
+        phoneWrap.classList.remove('hidden');
+        btnPhone.className = "px-4 py-2 rounded-xl text-xs font-extrabold flex items-center gap-2 transition bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg";
+        btnWatch.className = "px-4 py-2 rounded-xl text-xs font-bold text-purple-200 hover:bg-purple-900/50 flex items-center gap-2 transition";
+      }
+    }
+
+    // Modal Helpers
+    function openModal(id) {
+      const m = document.getElementById(id);
+      if (m) {
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+      }
+    }
+    function closeModal(id) {
+      const m = document.getElementById(id);
+      if (m) {
+        m.classList.add('hidden');
+        m.classList.remove('flex');
+      }
+    }
+    function openInstallModal() {
+      openModal('modal-install');
+    }
+
+    // Sound Siren Synthesizer & Speech Voice Alarm
+    function playBeepSound() {
+      try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } catch(e) {}
+    }
+
+    function speakCountVoice(count) {
+      try {
+        if ('speechSynthesis' in window) {
+          const msg = new SpeechSynthesisUtterance(`${count}`);
+          msg.rate = 1.2;
+          msg.volume = 1;
+          window.speechSynthesis.speak(msg);
+        }
+      } catch(e) {}
+    }
+
+    // Fall Detection Simulation
+    function triggerFallSimulation() {
+      countdownValue = 10;
+      document.getElementById('fall-countdown').innerText = countdownValue;
+      openModal('modal-fall');
+      playBeepSound();
+
+      if (fallTimer) clearInterval(fallTimer);
+      fallTimer = setInterval(() => {
+        countdownValue--;
+        document.getElementById('fall-countdown').innerText = countdownValue;
+        playBeepSound();
+
+        // Loud Voice Count for final 5 seconds
+        if (countdownValue <= 5 && countdownValue > 0) {
+          speakCountVoice(countdownValue);
+        }
+
+        if (countdownValue <= 0) {
+          clearInterval(fallTimer);
+          closeModal('modal-fall');
+          triggerSOS();
+        }
+      }, 1000);
+    }
+
+    function cancelFallAlert() {
+      if (fallTimer) clearInterval(fallTimer);
+      closeModal('modal-fall');
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    }
+
+    // SOS Emergency Trigger
+    function triggerSOS() {
+      if (fallTimer) clearInterval(fallTimer);
+      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      closeModal('modal-fall');
+      openModal('modal-sos-sent');
+    }
+
+    // Vitals Measurement Simulator
+    function refreshVitals() {
+      const icon = document.getElementById('vitals-spinner');
+      if (icon) icon.classList.add('fa-spin');
+
+      setTimeout(() => {
+        if (icon) icon.classList.remove('fa-spin');
+        const hr = Math.floor(Math.random() * (88 - 72 + 1)) + 72;
+        const sugar = Math.floor(Math.random() * (115 - 98 + 1)) + 98;
+        document.getElementById('val-hr').innerHTML = `${hr} <span class="text-[8px] font-normal text-slate-500">BPM</span>`;
+        document.getElementById('val-sugar').innerHTML = `${sugar} <span class="text-[8px] font-normal text-slate-500">mg/dL</span>`;
+      }, 800);
+    }
+
+    // Medication Confirm
+    function confirmMedication(itemId) {
+      const el = document.getElementById(itemId);
+      if (el) {
+        el.className = "flex items-center justify-between p-2.5 bg-purple-50/50 rounded-2xl border border-purple-100 opacity-80";
+        el.innerHTML = `
+          <div class="flex items-center gap-2.5">
+            <div class="w-7 h-7 rounded-xl bg-purple-200 text-purple-800 flex items-center justify-center text-xs font-bold">
+              <i class="fa-solid fa-check"></i>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-purple-950">Aspirin 75mg</p>
+              <p class="text-[9px] text-slate-500">Just Now • Afternoon Dose Confirmed</p>
+            </div>
+          </div>
+          <span class="text-[9px] text-purple-800 font-bold bg-white px-2 py-0.5 rounded border border-purple-200">Taken</span>
+        `;
+        document.getElementById('med-taken-badge').innerText = "2 / 2 Taken";
+      }
+    }
+
+    // Pharmacy Refill Order
+    function triggerRefillOrder() {
+      const btn = event.currentTarget;
+      btn.innerText = "Order Dispatched ✓";
+      btn.className = "bg-emerald-600 text-white text-xs font-extrabold px-3 py-2 rounded-xl shadow whitespace-nowrap";
+    }
+
+    // AI Health Advisor Queries
+    function setAiQuery(text) {
+      document.getElementById('ai-input').value = text;
+    }
+
+    function analyzeSymptomWithAI() {
+      const input = document.getElementById('ai-input').value.trim();
+      const outputCard = document.getElementById('ai-output-text');
+      const badge = document.getElementById('ai-urgency-badge');
+      const actions = document.getElementById('ai-action-buttons');
+
+      if (!input) {
+        outputCard.innerHTML = `<p class="text-rose-600 font-bold">Please enter a symptom or issue first!</p>`;
+        return;
+      }
+
+      outputCard.innerHTML = `<div class="flex items-center gap-2 text-purple-700 font-bold"><i class="fa-solid fa-spinner fa-spin"></i> Analyzing symptoms & generating precautions...</div>`;
+
+      setTimeout(() => {
+        const lower = input.toLowerCase();
+        if (lower.includes('chest') || lower.includes('tightness') || lower.includes('heart') || lower.includes('breath')) {
+          badge.className = "bg-rose-100 text-rose-800 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-rose-300";
+          badge.innerText = "URGENT / High Priority";
+          outputCard.innerHTML = `
+            <p class="font-extrabold text-rose-900">🚨 High Alert Precautions for Chest Discomfort:</p>
+            <ul class="list-disc pl-4 space-y-1 text-slate-700">
+              <li>Sit down immediately in a comfortable, relaxed position.</li>
+              <li>Loosen any tight clothing around neck and chest.</li>
+              <li>Avoid physical exertion. Stay calm and rest.</li>
+              <li>If pain radiates to arm/jaw, trigger emergency SOS immediately.</li>
+            </ul>
+          `;
+        } else if (lower.includes('sugar') || lower.includes('diabetes')) {
+          badge.className = "bg-amber-100 text-amber-800 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-amber-300";
+          badge.innerText = "Moderate Monitoring";
+          outputCard.innerHTML = `
+            <p class="font-extrabold text-amber-900">🩸 Glucose Management Precautions:</p>
+            <ul class="list-disc pl-4 space-y-1 text-slate-700">
+              <li>Drink plenty of fresh water to flush excess glucose.</li>
+              <li>Avoid high-carbohydrate or sugary drinks.</li>
+              <li>Re-measure Blood Sugar in 30 minutes via Curater Telemetry.</li>
+              <li>Take prescribed Metformin if scheduled dose was missed.</li>
+            </ul>
+          `;
+        } else {
+          badge.className = "bg-emerald-100 text-emerald-800 text-[9px] font-black px-2.5 py-0.5 rounded-full border border-emerald-300";
+          badge.innerText = "General Care Precautions";
+          outputCard.innerHTML = `
+            <p class="font-extrabold text-purple-950">🩺 Care & Relief Instructions for Palash:</p>
+            <ul class="list-disc pl-4 space-y-1 text-slate-700">
+              <li>Take plenty of rest and stay well hydrated with electrolyte fluids.</li>
+              <li>Apply warm compress or rest in a quiet, dark room.</li>
+              <li>Monitor Heart Rate and BP using the Home Dashboard tab.</li>
+              <li>Consult your primary physician if symptoms persist over 24 hours.</li>
+            </ul>
+          `;
+        }
+        actions.classList.remove('hidden');
+      }, 700);
+    }
+
+    // ==========================================
+    // REAL-TIME DOCTOR CHAT SYSTEM LOGIC
+    // ==========================================
+    function openDoctorChat(docName, roleTitle) {
+      activeDoctorName = docName;
+      document.getElementById('doctor-list-view').classList.add('hidden');
+      const room = document.getElementById('doctor-chat-room');
+      room.classList.remove('hidden');
+      room.classList.add('flex');
+
+      document.getElementById('chat-doc-name').innerText = docName;
+      document.getElementById('chat-doc-role-title').innerText = `${docName} (${roleTitle})`;
+      if (docName.includes('Rahul')) {
+        document.getElementById('chat-doc-avatar').innerText = "👨‍⚕️";
+      } else {
+        document.getElementById('chat-doc-avatar').innerText = "👩‍⚕️";
+      }
+
+      // Scroll to bottom
+      const container = document.getElementById('chat-messages-container');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function closeDoctorChat() {
+      document.getElementById('doctor-chat-room').classList.add('hidden');
+      document.getElementById('doctor-chat-room').classList.remove('flex');
+      document.getElementById('doctor-list-view').classList.remove('hidden');
+    }
+
+    function sendQuickChatMessage(msgText) {
+      document.getElementById('chat-input-field').value = msgText;
+      sendUserChatMessage();
+    }
+
+    function sendUserChatMessage() {
+      const input = document.getElementById('chat-input-field');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const container = document.getElementById('chat-messages-container');
+      const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      // User Message Bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = "flex gap-2 items-start justify-end";
+      userBubble.innerHTML = `
+        <div class="bg-purple-700 text-white p-3 rounded-2xl rounded-tr-none shadow-sm max-w-[82%] text-xs font-medium">
+          <p class="font-extrabold text-purple-200 text-[10px] mb-0.5">Palash Pandey</p>
+          ${text}
+          <span class="block text-[8px] text-purple-200 text-right mt-1 font-bold">${nowTime}</span>
+        </div>
+        <div class="w-7 h-7 rounded-xl bg-purple-900 text-white flex items-center justify-center text-xs font-bold shadow shrink-0">
+          PP
+        </div>
+      `;
+      container.appendChild(userBubble);
+      input.value = "";
+      container.scrollTop = container.scrollHeight;
+
+      // Show Typing Indicator & Generate Doctor Response
+      const typing = document.getElementById('chat-typing-indicator');
+      typing.classList.remove('hidden');
+      typing.classList.add('flex');
+
+      setTimeout(() => {
+        typing.classList.add('hidden');
+        typing.classList.remove('flex');
+
+        let doctorReply = "";
+        const lower = text.toLowerCase();
+        if (lower.includes('chest') || lower.includes('tightness') || lower.includes('pain')) {
+          doctorReply = "Palash, please stay calm and remain seated. I have reviewed your Heart Rate (76 BPM) which is stable. Avoid walking around. If tightness increases in the next 2 minutes, tap the SOS button to alert emergency team.";
+        } else if (lower.includes('aspirin') || lower.includes('dose') || lower.includes('pill')) {
+          doctorReply = "Yes, your afternoon Aspirin 75mg dose is scheduled for 02:00 PM. You can safely take it with half a glass of water now. I have logged this in your medical profile.";
+        } else if (lower.includes('sugar') || lower.includes('glucose') || lower.includes('log')) {
+          doctorReply = "Your Glucose level of 105 mg/dL is optimal post-meal. Continue taking Metformin as prescribed and stay well hydrated today.";
+        } else {
+          doctorReply = "I have received your message and updated telemetry feed. Your vitals remain normal. Rest well and feel free to reach out if any discomfort arises.";
+        }
+
+        const docBubble = document.createElement('div');
+        docBubble.className = "flex gap-2 items-start";
+        docBubble.innerHTML = `
+          <div class="w-7 h-7 rounded-xl bg-purple-700 text-white flex items-center justify-center text-xs font-bold shadow shrink-0">
+            🩺
+          </div>
+          <div class="bg-white p-3 rounded-2xl rounded-tl-none border border-purple-100 shadow-sm max-w-[82%] text-xs text-slate-800 font-medium">
+            <p class="font-extrabold text-purple-950 text-[10px] mb-0.5">${activeDoctorName}</p>
+            ${doctorReply}
+            <span class="block text-[8px] text-slate-400 text-right mt-1 font-bold">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+        `;
+        container.appendChild(docBubble);
+        container.scrollTop = container.scrollHeight;
+      }, 1200);
+    }
+
+    // Doctor Video Call Trigger
+    function startDoctorCall(docName) {
+      alert(`Initiating Encrypted Tele-Consultation with ${docName}...\nLive Vitals Feed Connected.`);
+    }
+
+    // Initial default screen set
+    switchScreen('screen-welcome');
+  </script>
+
+</body>
+</html>
